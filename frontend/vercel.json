@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://cousrse-planner.onrender.com/api/:path*"
+    }
+  ]
+}

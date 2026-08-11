@@ -9,9 +9,10 @@ import {
   DashboardStats,
 } from '../types';
 
-const rawApiBase = (import.meta as any).env?.VITE_API_BASE || '/api';
+const defaultBackendUrl = 'https://cousrse-planner.onrender.com/api';
+const rawApiBase = (import.meta as any).env?.VITE_API_BASE || defaultBackendUrl;
 const cleanBase = rawApiBase.trim().replace(/\/+$/, '');
-const API_BASE = cleanBase === '' ? '/api' : (cleanBase.endsWith('/api') ? cleanBase : `${cleanBase}/api`);
+const API_BASE = cleanBase.endsWith('/api') ? cleanBase : `${cleanBase}/api`;
 
 function getAuthHeaders() {
   const token = localStorage.getItem('career360_token');
