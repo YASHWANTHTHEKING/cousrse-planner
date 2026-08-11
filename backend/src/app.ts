@@ -7,7 +7,16 @@ import apiRoutes from './routes';
 
 const app = express();
 
-app.use(cors({ origin: '*' }));
+// Permissive CORS for cross-origin frontend requests
+app.use(
+  cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+app.options('*', cors());
+
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(
@@ -19,10 +28,12 @@ app.use(
   })
 );
 
+// Mount API routes under both /api and / so all URL variants work
 app.use('/api', apiRoutes);
+app.use('/', apiRoutes);
 
-app.get('/', (_req, res) => {
-  res.json({ message: 'Career 360 Host API with Course Planner Module Online.' });
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', message: 'Career 360 Host API with Course Planner Module Online.' });
 });
 
 // Error handling middleware
