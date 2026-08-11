@@ -9,7 +9,9 @@ import {
   DashboardStats,
 } from '../types';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
+const rawApiBase = (import.meta as any).env?.VITE_API_BASE || '/api';
+const cleanBase = rawApiBase.trim().replace(/\/+$/, '');
+const API_BASE = cleanBase === '' ? '/api' : (cleanBase.endsWith('/api') ? cleanBase : `${cleanBase}/api`);
 
 function getAuthHeaders() {
   const token = localStorage.getItem('career360_token');
