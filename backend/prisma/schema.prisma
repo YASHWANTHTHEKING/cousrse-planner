@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("STUDENT") // ADMIN, STUDENT, TUTOR
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Course Planner Extensions (Relations)
+  studentProfile            CoursePlannerStudentProfile?
+  tutorProfile              CoursePlannerTutorProfile?
+  taughtCourses             CoursePlannerCourse[]          @relation("TutorCourses")
+  tutoringRequestsAsStudent CoursePlannerTutoringRequest[] @relation("StudentTutoringRequests")
+  tutoringRequestsAsTutor   CoursePlannerTutoringRequest[] @relation("TutorTutoringRequests")
+  payments                  CoursePlannerPayment[]
+
+  @@map("users")
+}
+
+model CoursePlannerCategory {
+  id          String                @id @default(uuid())
+  name        String                @unique
+  description String?
+  courses     CoursePlannerCourse[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@map("course_planner_categories")
+}
+
+model CoursePlannerCourse {
+  id               String                         @id @default(uuid())
+  name             String
+  code             String?
+  categoryId       String
+  category         CoursePlannerCategory          @relation(fields: [categoryId], references: [id])
+  startDate        DateTime
+  endDate          DateTime
+  summary          String                         // Rich text HTML string
+  status           String                         @default("UPCOMING") // UPCOMING, ONGOING, COMPLETED
+  tutorId          String?
+  tutor            User?                          @relation("TutorCourses", fields: [tutorId], references: [id])
+  topics           CoursePlannerTopic[]
+  materials        CoursePlannerMaterial[]
+  tutoringRequests CoursePlannerTutoringRequest[]
+  payments         CoursePlannerPayment[]
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime                       @updatedAt
+
+  @@map("course_planner_courses")
+}
+
+model CoursePlannerTopic {
+  id        String                  @id @default(uuid())
+  name      String
+  courseId  String
+  course    CoursePlannerCourse     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  materials CoursePlannerMaterial[]
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  @@map("course_planner_topics")
+}
+
+model CoursePlannerMaterial {
+  id        String              @id @default(uuid())
+  title     String
+  courseId  String
+  course    CoursePlannerCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  topicId   String
+  topic     CoursePlannerTopic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  content   String              // URL or rich text notes
+  fileType  String?             // PDF, LINK, DOC, VIDEO
+  order     Int                 @default(0)
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@map("course_planner_materials")
+}
+
+model CoursePlannerTutoringRequest {
+  id        String              @id @default(uuid())
+  studentId String
+  student   User                @relation("StudentTutoringRequests", fields: [studentId], references: [id])
+  tutorId   String?
+  tutor     User?               @relation("TutorTutoringRequests", fields: [tutorId], references: [id])
+  courseId  String
+  course    CoursePlannerCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  message   String?
+  status    String              @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@map("course_planner_tutoring_requests")
+}
+
+model CoursePlannerPayment {
+  id            String              @id @default(uuid())
+  studentId     String
+  student       User                @relation(fields: [studentId], references: [id])
+  courseId      String
+  course        CoursePlannerCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  amount        Float
+  status        String              @default("COMPLETED") // PENDING, COMPLETED, REFUNDED, FAILED
+  paymentMethod String              @default("CREDIT_CARD")
+  transactionId String?
+  date          DateTime            @default(now())
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@map("course_planner_payments")
+}
+
+model CoursePlannerStudentProfile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  learningGoals String?
+  targetSkills  String?
+  phone         String?
+  bio           String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("course_planner_student_profiles")
+}
+
+model CoursePlannerTutorProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expertise      String?
+  qualifications String?
+  hourlyRate     Float?
+  availability   String?
+  bio            String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("course_planner_tutor_profiles")
+}
