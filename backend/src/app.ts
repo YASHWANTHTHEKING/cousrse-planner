@@ -28,13 +28,14 @@ app.use(
   })
 );
 
-// Mount API routes under both /api and / so all URL variants work
-app.use('/api', apiRoutes);
-app.use('/', apiRoutes);
-
-app.get('/health', (_req, res) => {
+// Welcome & Health check endpoints
+app.get(['/', '/api', '/health'], (_req, res) => {
   res.json({ status: 'ok', message: 'Career 360 Host API with Course Planner Module Online.' });
 });
+
+// Mount API routes under both /api and /
+app.use('/api', apiRoutes);
+app.use('/', apiRoutes);
 
 // Error handling middleware
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
